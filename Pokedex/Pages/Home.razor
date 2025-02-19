@@ -1,0 +1,104 @@
+﻿@page "/"
+@using Models
+@using Util
+@inject PokeClient client
+
+<PageTitle>Home</PageTitle>
+
+<div class="container">
+    <img src="\img\principal.png" alt="App Title" class="app-title" />
+
+    <input @bind="SearchText" @bind:event="oninput" placeholder="Buscar Pokémon..." class="form-control mb-3" />
+
+    <div class="pokemon-row">
+        @foreach (var pokemon in filteredPokemonList)
+        {
+            <a href="/pokemon/@pokemon.id">
+                <div class="pokemon-card">
+                    <img src="@pokemon.sprites.front_default" alt="Pokemon Sprite" />
+                    <h4 class="pokemon-name">@pokemon.name</h4>
+                    <div class="type-row">
+                        @foreach (var type in pokemon.types)
+                        {
+                            <span class="type-badge" style="background-color: @PokeColor.GetTypeColor(type.type.name)">@type.type.name</span>
+                        }
+                    </div>
+                </div>
+            </a>
+        }
+    </div>
+</div>
+
+@code {
+    List<Pokemon> pokemonList = new List<Pokemon>(); 
+    List<Pokemon> filteredPokemonList = new List<Pokemon>(); 
+    List<string> allPokemonNames = new List<string>(); 
+    string searchText = "";
+
+    string SearchText
+    {
+        get => searchText;
+        set
+        {
+            searchText = value.ToLower();
+            _ = SearchPokemon();
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadInitialPokemon();
+        await LoadAllPokemonNames(); 
+    }
+
+    private async Task LoadInitialPokemon()
+    {
+        pokemonList.Clear();
+        for (int i = 1; i <= 20; i++)
+        {
+            pokemonList.Add(await client.GetPokemon(i.ToString()));
+        }
+        filteredPokemonList = new List<Pokemon>(pokemonList);
+        StateHasChanged();
+    }
+
+    private async Task LoadAllPokemonNames()
+    {
+        try
+        {
+            var allPokemon = await client.GetAllPokemonNames(); 
+            allPokemonNames = allPokemon.Select(p => p.name).ToList();
+        }
+        catch
+        {
+            allPokemonNames.Clear();
+        }
+    }
+
+    private async Task SearchPokemon()
+    {
+        if (string.IsNullOrWhiteSpace(SearchText))
+        {
+            filteredPokemonList = new List<Pokemon>(pokemonList);
+        }
+        else
+        {
+            var matchingNames = allPokemonNames
+                .Where(name => name.StartsWith(SearchText, StringComparison.OrdinalIgnoreCase))
+                .Take(10) 
+                .ToList();
+
+            filteredPokemonList.Clear();
+            foreach (var name in matchingNames)
+            {
+                try
+                {
+                    var pokemon = await client.GetPokemon(name);
+                    filteredPokemonList.Add(pokemon);
+                }
+                catch { }
+            }
+        }
+        StateHasChanged();
+    }
+}
