@@ -56,6 +56,13 @@ Acceder a la aplicación en http://localhost:5000.
 4) Si no se encuentra el pokémon en la lista, se puede escribir su nombre en la barra de búsqueda y aparecerá.
 
 5) Desde la página de detalles, hay un botón para volver al home.
+
+## Preview
+
+![Preview Index](Pokedex/wwwroot/img/pkindex.png)
+![Preview Search](Pokedex/wwwroot/img/pksearch.png)
+![Preview View](Pokedex/wwwroot/img/pkview.png)
+
 ## Licencia
 
 Este proyecto está licenciado bajo la MIT License. Ver el archivo `LICENSE` para más detalles.
